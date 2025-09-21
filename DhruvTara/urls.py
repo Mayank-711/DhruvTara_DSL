@@ -34,8 +34,8 @@ auth_views = [
 
 
 stud_urls = [
-    path('dashboard/',sviews.dashboard,name='dashboard')
-
+    path('dashboard/',sviews.dashboard,name='dashboard'),
+    path('assesment/',sviews.assessment,name='assessment')
 ]
 
 

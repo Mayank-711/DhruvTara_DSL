@@ -1,0 +1,483 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DhruvTara - Your Career Assessment</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-bg: #0A192F;
+            --secondary-bg: #172A46;
+            --primary-accent: #FFD700;
+            --secondary-accent: #22D3EE;
+            --text-light: #CCD6F6;
+            --text-white: #FFFFFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-light);
+            display: grid;
+            place-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .back-to-home {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 2.5rem;
+            color: #CCD6F6; /* --text-light */
+            text-decoration: none;
+            line-height: 1;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+
+        .back-to-home:hover {
+            color: #FFD700; /* --primary-accent */
+            transform: scale(1.2);
+        }
+
+        .quiz-container {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--secondary-bg);
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden; /* Important for transitions */
+            position: relative;
+        }
+        
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .quiz-header h1 {
+            color: var(--text-white);
+            font-size: 1.8rem;
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background-color: var(--primary-bg);
+            border-radius: 5px;
+            margin-bottom: 2rem;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary-accent), var(--primary-accent));
+            border-radius: 5px;
+            transition: width 0.4s ease-in-out;
+        }
+
+        .question-slide {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .question-slide.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .question-category {
+            font-size: 0.9rem;
+            color: var(--secondary-accent);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            color: var(--text-white);
+            margin-bottom: 2rem;
+            min-height: 50px;
+        }
+        
+        .rating-scale {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .rating-btn {
+            background-color: transparent;
+            border: 2px solid #304565;
+            color: var(--text-light);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .rating-btn:hover {
+            border-color: var(--primary-accent);
+            color: var(--primary-accent);
+        }
+
+        .rating-btn.selected {
+            background-color: var(--primary-accent);
+            color: var(--primary-bg);
+            border-color: var(--primary-accent);
+            transform: scale(1.1);
+        }
+        
+        /* Special style for the dropdown */
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: var(--primary-bg);
+            border: 1px solid #304565;
+            border-radius: 5px;
+            color: var(--text-white);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #304565;
+            padding-top: 1.5rem;
+        }
+        
+        .nav-btn, .submit-btn {
+            padding: 10px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid var(--primary-accent);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        
+        #prev-btn {
+            background-color: transparent;
+            color: var(--primary-accent);
+        }
+        
+        #next-btn, #submit-btn {
+            background-color: var(--primary-accent);
+            color: var(--primary-bg);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #submit-btn {
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body>
+    <a href="{% url 'dashboard' %}" class="back-to-home" title="Back to Home">&times;</a>
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <h1>Discover Your Strengths</h1>
+            <p>Answer honestly to find the best path for you.</p>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <!-- This form will wrap all questions and submit them at the end -->
+        <form id="assessment-form" method="POST" action="{% url 'assessment' %}">
+            {% csrf_token %}
+
+            <div class="question-slides-container">
+                <!-- Question 1: Math -->
+                <div class="question-slide active" data-question-index="0">
+                    <p class="question-category">Math Interest</p>
+                    <p class="question-text">Do you like solving number problems or puzzles?</p>
+                    <div class="rating-scale">
+                        <button type="button" class="rating-btn" data-value="1">1</button>
+                        <button type="button" class="rating-btn" data-value="2">2</button>
+                        <button type="button" class="rating-btn" data-value="3">3</button>
+                        <button type="button" class="rating-btn" data-value="4">4</button>
+                        <button type="button" class="rating-btn" data-value="5">5</button>
+                    </div>
+                    <input type="hidden" name="math_interest" value="">
+                </div>
+
+                <!-- Question 2: Science -->
+                <div class="question-slide" data-question-index="1">
+                    <p class="question-category">Science Interest</p>
+                    <p class="question-text">Are you curious about how things in nature or science work?</p>
+                    <div class="rating-scale">
+                        <button type="button" class="rating-btn" data-value="1">1</button>
+                        <button type="button" class="rating-btn" data-value="2">2</button>
+                        <button type="button" class="rating-btn" data-value="3">3</button>
+                        <button type="button" class="rating-btn" data-value="4">4</button>
+                        <button type="button" class="rating-btn" data-value="5">5</button>
+                    </div>
+                    <input type="hidden" name="science_interest" value="">
+                </div>
+                
+                <!-- Add all other questions in the same format... -->
+
+                <!-- Question 3: Literature -->
+                 <div class="question-slide" data-question-index="2">
+                    <p class="question-category">Literature Interest</p>
+                    <p class="question-text">Do you enjoy reading stories or writing your own?</p>
+                    <div class="rating-scale">
+                        <button type="button" class="rating-btn" data-value="1">1</button>
+                        <button type="button" class="rating-btn" data-value="2">2</button>
+                        <button type="button" class="rating-btn" data-value="3">3</button>
+                        <button type="button" class="rating-btn" data-value="4">4</button>
+                        <button type="button" class="rating-btn" data-value="5">5</button>
+                    </div>
+                    <input type="hidden" name="literature_interest" value="">
+                </div>
+
+                <!-- Question 4: Coding -->
+                 <div class="question-slide" data-question-index="3">
+                    <p class="question-category">Coding Interest</p>
+                    <p class="question-text">Do you like making apps, websites, or solving problems with computers?</p>
+                    <div class="rating-scale">
+                        <button type="button" class="rating-btn" data-value="1">1</button>
+                        <button type="button" class="rating-btn" data-value="2">2</button>
+                        <button type="button" class="rating-btn" data-value="3">3</button>
+                        <button type="button" class="rating-btn" data-value="4">4</button>
+                        <button type="button" class="rating-btn" data-value="5">5</button>
+                    </div>
+                    <input type="hidden" name="coding_interest" value="">
+                </div>
+
+                <!-- ... continue for Teamwork, Creativity, etc. -->
+                 <div class="question-slide" data-question-index="4">
+                    <p class="question-category">Teamwork</p>
+                    <p class="question-text">Do you like working with others to complete a task?</p>
+                    <div class="rating-scale">
+                        <button type="button" class="rating-btn" data-value="1">1</button>
+                        <button type="button" class="rating-btn" data-value="2">2</button>
+                        <button type="button" class="rating-btn" data-value="3">3</button>
+                        <button type="button" class="rating-btn" data-value="4">4</button>
+                        <button type="button" class="rating-btn" data-value="5">5</button>
+                    </div>
+                    <input type="hidden" name="teamwork" value="">
+                </div>
+                 <div class="question-slide" data-question-index="5">
+                    <p class="question-category">Creativity</p>
+                    <p class="question-text">Do you often think of new ideas or different ways to do things?</p>
+                    <div class="rating-scale">
+                        <button type="button" class="rating-btn" data-value="1">1</button>
+                        <button type="button" class="rating-btn" data-value="2">2</button>
+                        <button type="button" class="rating-btn" data-value="3">3</button>
+                        <button type="button" class="rating-btn" data-value="4">4</button>
+                        <button type="button" class="rating-btn" data-value="5">5</button>
+                    </div>
+                    <input type="hidden" name="creativity" value="">
+                </div>
+                 <div class="question-slide" data-question-index="6">
+                    <p class="question-category">Helping Interest</p>
+                    <p class="question-text">Do you enjoy helping others or doing good for your community?</p>
+                    <div class="rating-scale">
+                        <button type="button" class="rating-btn" data-value="1">1</button>
+                        <button type="button" class="rating-btn" data-value="2">2</button>
+                        <button type="button" class="rating-btn" data-value="3">3</button>
+                        <button type="button" class="rating-btn" data-value="4">4</button>
+                        <button type="button" class="rating-btn" data-value="5">5</button>
+                    </div>
+                    <input type="hidden" name="helping_interest" value="">
+                </div>
+                 <div class="question-slide" data-question-index="7">
+                    <p class="question-category">Leadership</p>
+                    <p class="question-text">Do you like guiding others and taking charge in a group?</p>
+                    <div class="rating-scale">
+                        <button type="button" class="rating-btn" data-value="1">1</button>
+                        <button type="button" class="rating-btn" data-value="2">2</button>
+                        <button type="button" class="rating-btn" data-value="3">3</button>
+                        <button type="button" class="rating-btn" data-value="4">4</button>
+                        <button type="button" class="rating-btn" data-value="5">5</button>
+                    </div>
+                    <input type="hidden" name="leadership" value="">
+                </div>
+                 <div class="question-slide" data-question-index="8">
+                    <p class="question-category">Travel Interest</p>
+                    <p class="question-text">Do you like visiting new places and exploring different cultures?</p>
+                    <div class="rating-scale">
+                        <button type="button" class="rating-btn" data-value="1">1</button>
+                        <button type="button" class="rating-btn" data-value="2">2</button>
+                        <button type="button" class="rating-btn" data-value="3">3</button>
+                        <button type="button" class="rating-btn" data-value="4">4</button>
+                        <button type="button" class="rating-btn" data-value="5">5</button>
+                    </div>
+                    <input type="hidden" name="travel_interest" value="">
+                </div>
+                 <div class="question-slide" data-question-index="9">
+                    <p class="question-category">Stable Job Interest</p>
+                    <p class="question-text">Do you prefer a safe and steady job rather than taking risks?</p>
+                    <div class="rating-scale">
+                        <button type="button" class="rating-btn" data-value="1">1</button>
+                        <button type="button" class="rating-btn" data-value="2">2</button>
+                        <button type="button" class="rating-btn" data-value="3">3</button>
+                        <button type="button" class="rating-btn" data-value="4">4</button>
+                        <button type="button" class="rating-btn" data-value="5">5</button>
+                    </div>
+                    <input type="hidden" name="stable_job_interest" value="">
+                </div>
+                 <div class="question-slide" data-question-index="10">
+                    <p class="question-category">Business Interest</p>
+                    <p class="question-text">Are you interested in starting or running your own business?</p>
+                    <div class="rating-scale">
+                        <button type="button" class="rating-btn" data-value="1">1</button>
+                        <button type="button" class="rating-btn" data-value="2">2</button>
+                        <button type="button" class="rating-btn" data-value="3">3</button>
+                        <button type="button" class="rating-btn" data-value="4">4</button>
+                        <button type="button" class="rating-btn" data-value="5">5</button>
+                    </div>
+                    <input type="hidden" name="business_interest" value="">
+                </div>
+                 <div class="question-slide" data-question-index="11">
+                    <p class="question-category">Communication Skills</p>
+                    <p class="question-text">Can you explain your ideas clearly and talk to others easily?</p>
+                    <div class="rating-scale">
+                        <button type="button" class="rating-btn" data-value="1">1</button>
+                        <button type="button" class="rating-btn" data-value="2">2</button>
+                        <button type="button" class="rating-btn" data-value="3">3</button>
+                        <button type="button" class="rating-btn" data-value="4">4</button>
+                        <button type="button" class="rating-btn" data-value="5">5</button>
+                    </div>
+                    <input type="hidden" name="communication_skills" value="">
+                </div>
+
+               
+
+            <div class="navigation-buttons">
+                <button type="button" id="prev-btn" class="nav-btn">Previous</button>
+                <button type="button" id="next-btn" class="nav-btn">Next</button>
+                <button type="submit" id="submit-btn" class="submit-btn">Get My Results</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const questionSlides = document.querySelectorAll('.question-slide');
+            const progressBar = document.getElementById('progress-bar');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            const totalQuestions = questionSlides.length;
+            
+            let currentQuestionIndex = 0;
+
+            function showQuestion(index) {
+                // Hide all questions
+                questionSlides.forEach(slide => slide.classList.remove('active'));
+                
+                // Show the current question
+                questionSlides[index].classList.add('active');
+                
+                // Update progress bar
+                const progress = ((index + 1) / totalQuestions) * 100;
+                progressBar.style.width = `${progress}%`;
+                
+                // Update button visibility and state
+                prevBtn.style.display = index === 0 ? 'none' : 'inline-block';
+                
+                if (index === totalQuestions - 1) {
+                    nextBtn.style.display = 'none';
+                    submitBtn.style.display = 'inline-block';
+                } else {
+                    nextBtn.style.display = 'inline-block';
+                    submitBtn.style.display = 'none';
+                }
+                
+                // Disable next/submit until an answer is given
+                const currentSlide = questionSlides[index];
+                const hiddenInput = currentSlide.querySelector('input[type="hidden"]');
+                const select = currentSlide.querySelector('select');
+
+                if ( (hiddenInput && !hiddenInput.value) && (select && !select.value) ) {
+                    nextBtn.disabled = true;
+                    submitBtn.disabled = true;
+                } else {
+                     nextBtn.disabled = false;
+                     submitBtn.disabled = false;
+                }
+            }
+
+            nextBtn.addEventListener('click', () => {
+                if (currentQuestionIndex < totalQuestions - 1) {
+                    currentQuestionIndex++;
+                    showQuestion(currentQuestionIndex);
+                }
+            });
+
+            prevBtn.addEventListener('click', () => {
+                if (currentQuestionIndex > 0) {
+                    currentQuestionIndex--;
+                    showQuestion(currentQuestionIndex);
+                }
+            });
+
+            // Add event listeners to all rating buttons
+            document.querySelectorAll('.rating-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const currentSlide = e.target.closest('.question-slide');
+                    const hiddenInput = currentSlide.querySelector('input[type="hidden"]');
+                    const ratingValue = e.target.dataset.value;
+
+                    // Set the value of the hidden input
+                    hiddenInput.value = ratingValue;
+                    
+                    // Update button selected state
+                    currentSlide.querySelectorAll('.rating-btn').forEach(btn => btn.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                    
+                    // Enable the next button
+                    nextBtn.disabled = false;
+                });
+            });
+
+            // Add event listener for the final dropdown question
+             const careerSelect = document.querySelector('select[name="career_choice"]');
+             if(careerSelect) {
+                 careerSelect.addEventListener('change', () => {
+                     if(careerSelect.value) {
+                         submitBtn.disabled = false;
+                     } else {
+                         submitBtn.disabled = true;
+                     }
+                 });
+             }
+
+
+            // Initial call to show the first question
+            showQuestion(currentQuestionIndex);
+        });
+    </script>
+
+</body>
+</html>
