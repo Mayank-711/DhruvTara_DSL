@@ -314,6 +314,147 @@
             color: var(--primary-accent);
         }
 
+        /* --- Assessment Results --- */
+        .results-container {
+            margin-top: 20px;
+        }
+
+        .result-item {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .result-value {
+            color: var(--primary-accent);
+        }
+
+        .skill-meter {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .meter-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            flex-grow: 1;
+            margin-right: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent));
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        .meter-value {
+            min-width: 50px;
+            text-align: right;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary-accent);
+        }
+
+        /* --- Career Match Items --- */
+        .career-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .career-item:last-child {
+            border-bottom: none;
+        }
+
+        .career-info h3 {
+            font-size: 1.1rem;
+            color: var(--text-white);
+            margin-bottom: 5px;
+        }
+
+        .career-info p {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* --- Modal Styles --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+            transform: translateY(-50px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-header h2 {
+            color: var(--text-white);
+            margin-bottom: 10px;
+        }
+
+        .modal-content {
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
         /* --- Responsive Design --- */
         @media (max-width: 900px) {
             .content-grid {
@@ -341,6 +482,16 @@
             .mobile-menu-btn {
                 display: block;
             }
+            
+            .career-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .career-item .btn {
+                align-self: flex-end;
+            }
         }
     </style>
 </head>
@@ -353,9 +504,9 @@
             </a>
             
             <div class="nav-links">
-                <a href="#">Dashboard</a>
-                <a href="#">Career Paths</a>
-                <a href="{% url 'assessment' %}">Assessments</a>
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'careerpath' %}">Career Paths</a>
+                <a href="{% url 'assessment' %}" id="assessment-link">Assessments</a>
                 <a href="#">Resources</a>
             </div>
             
@@ -373,31 +524,34 @@
         <div class="dashboard-header">
             <h1>Welcome back, <span class="highlight">{{ user.first_name|default:user.username }}</span>! 👋</h1>
             <p class="welcome-text">Here's your personalized career guidance dashboard</p>
+                Assessment Completed: {{ has_completed_assessment }}
+                User: {{ user.username }}
         </div>
+
 
         <!-- Stats Overview -->
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>Career Matches Found</h3>
-                <div class="stat-value">12</div>
+                <div class="stat-value">{{ assessment_results|length }}</div>
                 <div class="stat-change">
-                    <span>+3 since last week</span>
+                    <span>Based on your assessment</span>
                 </div>
             </div>
             
             <div class="stat-card">
                 <h3>Assessment Completion</h3>
-                <div class="stat-value">75%</div>
+                <div class="stat-value">100%</div>
                 <div class="stat-change">
-                    <span>Complete your profile for better matches</span>
+                    <span>Completed on {{ assessment_date }}</span>
                 </div>
             </div>
             
             <div class="stat-card">
-                <h3>Recommended Paths</h3>
-                <div class="stat-value">5</div>
+                <h3>Top Match Score</h3>
+                <div class="stat-value">{{ top_match_score }}%</div>
                 <div class="stat-change">
-                    <span>Based on your skills and interests</span>
+                    <span>{{ top_match_name }}</span>
                 </div>
             </div>
         </div>
@@ -406,71 +560,89 @@
         <div class="content-grid">
             <!-- Left Column -->
             <div class="main-content">
-                <!-- Progress Section -->
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Your Career Progress</h2>
-                        <a href="#" class="view-all">View Details</a>
-                    </div>
-                    
-                    <div class="progress-item">
-                        <div class="progress-info">
-                            <h3>Personality Assessment</h3>
-                            <p>Discover your work style and preferences</p>
-                        </div>
-                        <div class="progress-value">100%</div>
-                    </div>
-                    
-                    <div class="progress-item">
-                        <div class="progress-info">
-                            <h3>Skills Inventory</h3>
-                            <p>Identify your strengths and areas for growth</p>
-                        </div>
-                        <div class="progress-value">60%</div>
-                    </div>
-                    
-                    <div class="progress-item">
-                        <div class="progress-info">
-                            <h3>Interest Profiler</h3>
-                            <p>Find careers that match your interests</p>
-                        </div>
-                        <div class="progress-value">25%</div>
-                    </div>
-                    
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 62%;"></div>
-                    </div>
-                </div>
-
                 <!-- Top Career Matches -->
                 <div class="card">
                     <div class="card-header">
                         <h2>Your Top Career Matches</h2>
-                        <a href="#" class="view-all">See All</a>
                     </div>
                     
-                    <div class="progress-item">
-                        <div class="progress-info">
-                            <h3>Data Scientist</h3>
-                            <p>92% match • High growth field</p>
+                    {% for career in assessment_results %}
+                    <div class="career-item">
+                        <div class="career-info">
+                            <h3>{{ career.0 }}</h3>
+                            <p>{{ career.1 }}% match • Based on your skills and interests</p>
                         </div>
                         <button class="btn btn-primary">Explore</button>
                     </div>
-                    
-                    <div class="progress-item">
-                        <div class="progress-info">
-                            <h3>UX Designer</h3>
-                            <p>88% match • Creative & technical</p>
-                        </div>
-                        <button class="btn btn-primary">Explore</button>
+                    {% endfor %}
+                </div>
+
+                <!-- Your Assessment Results -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Your Assessment Results</h2>
                     </div>
                     
-                    <div class="progress-item">
-                        <div class="progress-info">
-                            <h3>Software Engineer</h3>
-                            <p>85% match • Strong job market</p>
+                    <div class="results-container">
+                        <div class="result-item">
+                            <span class="result-label">Math Interest</span>
+                            <div class="skill-meter">
+                                <div class="meter-bar">
+                                    <div class="meter-fill" style="width: {{ math_interest }}%;"></div>
+                                </div>
+                                <div class="meter-value">{{ math_interest }}%</div>
+                            </div>
                         </div>
-                        <button class="btn btn-primary">Explore</button>
+                        
+                        <div class="result-item">
+                            <span class="result-label">Science Interest</span>
+                            <div class="skill-meter">
+                                <div class="meter-bar">
+                                    <div class="meter-fill" style="width: {{ science_interest }}%;"></div>
+                                </div>
+                                <div class="meter-value">{{ science_interest }}%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="result-item">
+                            <span class="result-label">Literature Interest</span>
+                            <div class="skill-meter">
+                                <div class="meter-bar">
+                                    <div class="meter-fill" style="width: {{ literature_interest }}%;"></div>
+                                </div>
+                                <div class="meter-value">{{ literature_interest }}%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="result-item">
+                            <span class="result-label">Coding Interest</span>
+                            <div class="skill-meter">
+                                <div class="meter-bar">
+                                    <div class="meter-fill" style="width: {{ coding_interest }}%;"></div>
+                                </div>
+                                <div class="meter-value">{{ coding_interest }}%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="result-item">
+                            <span class="result-label">Teamwork</span>
+                            <div class="skill-meter">
+                                <div class="meter-bar">
+                                    <div class="meter-fill" style="width: {{ teamwork }}%;"></div>
+                                </div>
+                                <div class="meter-value">{{ teamwork }}%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="result-item">
+                            <span class="result-label">Creativity</span>
+                            <div class="skill-meter">
+                                <div class="meter-bar">
+                                    <div class="meter-fill" style="width: {{ creativity }}%;"></div>
+                                </div>
+                                <div class="meter-value">{{ creativity }}%</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -486,16 +658,16 @@
                     <div class="recommendation-item">
                         <div class="rec-icon">📊</div>
                         <div class="rec-content">
-                            <h3>Complete Skills Assessment</h3>
-                            <p>Get more accurate career matches</p>
+                            <h3>Explore Career Paths</h3>
+                            <p>Learn more about your top matches</p>
                         </div>
                     </div>
                     
                     <div class="recommendation-item">
                         <div class="rec-icon">📚</div>
                         <div class="rec-content">
-                            <h3>Explore Learning Paths</h3>
-                            <p>See what you need to learn for your top careers</p>
+                            <h3>Find Learning Resources</h3>
+                            <p>Develop skills for your chosen career</p>
                         </div>
                     </div>
                     
@@ -508,30 +680,88 @@
                     </div>
                 </div>
 
-                <!-- Upcoming Events -->
+                <!-- Assessment Status -->
                 <div class="card">
                     <div class="card-header">
-                        <h2>Upcoming Events</h2>
+                        <h2>Assessment Status</h2>
+                    </div>
+                    
+                    <div class="recommendation-item">
+                        <div class="rec-icon">✅</div>
+                        <div class="rec-content">
+                            <h3>Completed</h3>
+                            <p>You've completed the assessment</p>
+                        </div>
                     </div>
                     
                     <div class="recommendation-item">
                         <div class="rec-icon">📅</div>
                         <div class="rec-content">
-                            <h3>Career Counseling Session</h3>
-                            <p>Tomorrow • 3:00 PM</p>
-                        </div>
-                    </div>
-                    
-                    <div class="recommendation-item">
-                        <div class="rec-icon">🎓</div>
-                        <div class="rec-content">
-                            <h3>College Fair</h3>
-                            <p>Next Friday • 10:00 AM - 4:00 PM</p>
+                            <h3>Completed On</h3>
+                            <p>{{ assessment_date }}</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Assessment Lock Modal -->
+    <div class="modal-overlay" id="assessment-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Assessment Already Completed</h2>
+            </div>
+            <div class="modal-content">
+                <p>You have already completed the assessment. Each user can only take the assessment once.</p>
+                <p>To take the assessment again, please create a new account.</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="modal-close">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Check if user has already completed the assessment
+    document.addEventListener('DOMContentLoaded', function() {
+        const assessmentLink = document.getElementById('assessment-link');
+        const assessmentModal = document.getElementById('assessment-modal');
+        const modalClose = document.getElementById('modal-close');
+        
+        // Use the value passed from Django backend
+        const assessmentCompleted = {{ has_completed_assessment|yesno:"true,false" }};
+        
+        if (assessmentCompleted) {
+            assessmentLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                assessmentModal.classList.add('active');
+            });
+        }
+        
+        modalClose.addEventListener('click', function() {
+            assessmentModal.classList.remove('active');
+        });
+        
+        // Close modal when clicking outside
+        assessmentModal.addEventListener('click', function(e) {
+            if (e.target === assessmentModal) {
+                assessmentModal.classList.remove('active');
+            }
+        });
+        
+        // Animate progress bars on page load
+        setTimeout(function() {
+            const meterFills = document.querySelectorAll('.meter-fill');
+            meterFills.forEach(function(fill) {
+                const width = fill.style.width;
+                fill.style.width = '0';
+                setTimeout(function() {
+                    fill.style.width = width;
+                }, 100);
+            });
+        }, 500);
+    });
+</script>
 </body>
 </html>
