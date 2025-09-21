@@ -1,0 +1,332 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - DhruvTara</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- Color Palette & Global Styles --- */
+        :root {
+            --primary-bg: #0A192F;      /* Deep Navy Blue */
+            --secondary-bg: #172A46;    /* Lighter Navy */
+            --primary-accent: #FFD700;  /* Gold/Yellow for stars */
+            --secondary-accent: #22D3EE;/* Bright Cyan for tech feel */
+            --text-light: #CCD6F6;      /* Light Grey/Blue for text */
+            --text-white: #FFFFFF;
+            --error-color: #FF6B6B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--text-white);
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; }
+        p { margin-bottom: 1rem; }
+
+        /* --- Auth Container --- */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            padding: 40px 0;
+        }
+
+        .auth-card {
+            background-color: var(--secondary-bg);
+            border-radius: 10px;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h2 {
+            color: var(--primary-accent);
+            margin-bottom: 10px;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-white);
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        /* --- Form Styles --- */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: rgba(10, 25, 47, 0.6);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 5px;
+            color: var(--text-light);
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .errorlist {
+            list-style: none;
+            color: var(--error-color);
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            display: inline-block;
+            padding: 12px 28px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            width: 100%;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-accent);
+            color: var(--primary-bg);
+            border: 2px solid var(--primary-accent);
+        }
+
+        .btn-primary:hover {
+            background-color: transparent;
+            color: var(--primary-accent);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary-accent);
+            border: 2px solid var(--primary-accent);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--primary-accent);
+            color: var(--primary-bg);
+        }
+
+        /* --- Additional Links --- */
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .auth-footer a {
+            color: var(--secondary-accent);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .auth-footer a:hover {
+            color: var(--primary-accent);
+            text-decoration: underline;
+        }
+
+        /* --- Messages --- */
+        .messages {
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .alert-error {
+            background-color: rgba(255, 107, 107, 0.1);
+            border: 1px solid var(--error-color);
+            color: var(--error-color);
+        }
+
+        .alert-success {
+            background-color: rgba(34, 211, 238, 0.1);
+            border: 1px solid var(--secondary-accent);
+            color: var(--secondary-accent);
+        }
+
+        /* --- Password Requirements --- */
+        .password-help {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        /* --- Responsive Design --- */
+        @media(max-width: 768px) {
+            .auth-card {
+                padding: 30px 20px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.7rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <a href="{% url 'landingpage' %}" class="logo">🌟 DhruvTara</a>
+                <h2>Start Your Journey</h2>
+                <p>Create an account to discover your perfect career path</p>
+            </div>
+
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'signup' %}">
+                {% csrf_token %}
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="id_first_name">First Name</label>
+                        <input type="text" name="first_name" class="form-control" id="id_first_name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_last_name">Last Name</label>
+                        <input type="text" name="last_name" class="form-control" id="id_last_name">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_username">Username</label>
+                    <input type="text" name="username" class="form-control" id="id_username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_email">Email</label>
+                    <input type="email" name="email" class="form-control" id="id_email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_password1">Password</label>
+                    <input type="password" name="password1" class="form-control" id="id_password1" required>
+                    <p class="password-help">Your password must contain at least 8 characters, including letters and numbers.</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_password2">Confirm Password</label>
+                    <input type="password" name="password2" class="form-control" id="id_password2" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_phone_number">Phone Number (Optional)</label>
+                    <input type="text" name="phone_number" class="form-control" id="id_phone_number">
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_date_of_birth">Date of Birth (Optional)</label>
+                    <input type="date" name="date_of_birth" class="form-control" id="id_date_of_birth">
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_school">School (Optional)</label>
+                    <input type="text" name="school" class="form-control" id="id_school">
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_grade">Grade (Optional)</label>
+                    <select name="grade" class="form-control" id="id_grade">
+                        <option value="">Select your grade</option>
+                        <option value="8">8th Grade</option>
+                        <option value="9">9th Grade</option>
+                        <option value="10">10th Grade</option>
+                        <option value="11">11th Grade</option>
+                        <option value="12">12th Grade</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Create Account</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -27,11 +27,14 @@ urlpatterns = [
 
 auth_views = [
     path('',aviews.landingpage,name='landingpage'),
-    path('/login',aviews.login,name='login')
+    path('login/',aviews.login_view,name='login'),
+    path('signup/',aviews.signup_view,name='signup'),
+    path('logout/',aviews.logout_view,name='logout')
 ]
 
 
 stud_urls = [
+    path('dashboard/',sviews.dashboard,name='dashboard')
 
 ]
 
