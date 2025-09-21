@@ -93,4 +93,4 @@ def assessment(request):
         return redirect('dashboard')
 
     # GET request
-    return render(request, 'authapp/assessment.html')
+    return render(request, 'students/assessment.html')
