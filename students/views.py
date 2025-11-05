@@ -171,7 +171,7 @@ def get_careers_for_user(user):
 def get_career_info_from_gemini(career_name: str) -> dict:
     """Synchronously fetches detailed career information from the Gemini API."""
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-2.5-flash")
         
         prompt = f"""
         Analyze the career: '{career_name}'.

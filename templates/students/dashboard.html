@@ -507,7 +507,6 @@
                 <a href="{% url 'dashboard' %}">Dashboard</a>
                 <a href="{% url 'careerpath' %}">Career Paths</a>
                 <a href="{% url 'assessment' %}" id="assessment-link">Assessments</a>
-                <a href="#">Resources</a>
             </div>
             
             <div class="user-menu">
@@ -541,7 +540,7 @@
             
             <div class="stat-card">
                 <h3>Assessment Completion</h3>
-                <div class="stat-value">100%</div>
+                {% comment %} <div class="stat-value">100%</div> {% endcomment %}
                 <div class="stat-change">
                     <span>Completed on {{ assessment_date }}</span>
                 </div>
@@ -572,7 +571,7 @@
                             <h3>{{ career.0 }}</h3>
                             <p>{{ career.1 }}% match • Based on your skills and interests</p>
                         </div>
-                        <button class="btn btn-primary">Explore</button>
+                        <button class="btn btn-primary" href={% url 'careerpath' %}>Explore</button>
                     </div>
                     {% endfor %}
                 </div>
@@ -686,13 +685,13 @@
                         <h2>Assessment Status</h2>
                     </div>
                     
-                    <div class="recommendation-item">
+                    {% comment %} <div class="recommendation-item">
                         <div class="rec-icon">✅</div>
                         <div class="rec-content">
                             <h3>Completed</h3>
                             <p>You've completed the assessment</p>
                         </div>
-                    </div>
+                    </div> {% endcomment %}
                     
                     <div class="recommendation-item">
                         <div class="rec-icon">📅</div>
